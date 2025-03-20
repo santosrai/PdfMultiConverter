@@ -1,0 +1,66 @@
+App Requirements: PPT to PDF Converter with Multi-Upload
+Objective : Create a user-friendly app that converts multiple PowerPoint files (PPT/PPTX) to PDFs in batch mode.
+
+Core Features
+Multi-File Upload
+Allow users to upload multiple PPT/PPTX files via:
+Drag-and-drop interface.
+File picker (select multiple files at once).
+Display a list of uploaded files with thumbnails/previews.
+Batch Conversion
+Convert all uploaded files to PDFs in a single operation.
+Preserve original formatting, images, and embedded elements.
+Support for password-protected PPT files (optional).
+Progress Tracking
+Show real-time progress bars for each file conversion.
+Notify users upon completion (e.g., toast alerts or banners).
+Download Options
+Download individual PDFs or a ZIP bundle of all converted files.
+Option to delete files from the server post-download.
+Security & Privacy
+Automatically delete uploaded files and PDFs after 24 hours.
+Scan files for malware (integrate tools like ClamAV).
+HTTPS encryption for data in transit.
+Technical Stack
+Frontend :
+
+Framework: React.js or Vue.js for dynamic UI.
+Drag-and-drop: Use react-dropzone or vue-dropzone.
+Progress display: Axios interceptors or WebSocket for real-time updates.
+Backend :
+
+Language: Python (Flask/Django) or Node.js (Express/NestJS).
+Conversion Tools:
+Option 1 : LibreOffice CLI (soffice --headless) for cross-platform conversion.
+Option 2 : Aspose.Slides API (paid, but robust).
+Option 3 : Python python-pptx + pdfkit (for basic conversions).
+File Handling: Process files in a queue (e.g., Celery/RabbitMQ for Python).
+Deployment :
+
+Cloud: AWS, DigitalOcean, or Vercel (frontend) + Heroku/Render (backend).
+Containerization: Docker for scalability.
+UI/UX Design
+Homepage :
+Hero section with "Upload PPT/PPTX" button and drag-and-drop zone.
+Clear instructions (e.g., "Drop files here or click to upload").
+Processing Page :
+Table/list view of files with status (queued, converting, completed).
+Cancel button for individual files.
+Download Page :
+Summary of converted files with download buttons.
+"Download All" ZIP option.
+Edge Cases
+Handle corrupted PPT files (graceful error messages).
+Large file support (e.g., 500MB+ files; implement chunked uploads).
+Rate limiting to prevent abuse (e.g., 10 files per hour for free users).
+Example Workflow
+User uploads 5 PPT files via drag-and-drop.
+Backend queues files, converts them sequentially, and streams progress to frontend.
+On completion, user downloads a ZIP of PDFs or saves files to cloud storage (e.g., Google Drive).
+Deliverables :
+
+MVP: Basic conversion with multi-upload and ZIP download.
+Stretch Goals:
+OCR for scanned PPTs.
+PDF customization (e.g., page size, quality).
+API access for developers.
