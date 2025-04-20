@@ -12,8 +12,9 @@ import {
   FileText,
   X,
   Trash2,
+  File,
 } from "lucide-react";
-import { UploadedFile, FileStatus, formatFileSize } from "@/lib/fileUtils";
+import { UploadedFile, FileStatus, formatFileSize, getFileTypeFromName, FileType } from "@/lib/fileUtils";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 
@@ -24,6 +25,91 @@ interface FilesListProps {
   onConvertAll: () => void;
   onClearAll: () => void;
   simulateProgress: (id: string, progress: number) => void;
+}
+
+// Helper function to get the appropriate icon for the file type
+function getFileIcon(file: UploadedFile) {
+  const fileType = getFileTypeFromName(file.name);
+  
+  switch (fileType) {
+    case FileType.POWERPOINT:
+      return <Presentation className="h-6 w-6" />;
+    case FileType.WORD:
+      return <File className="h-6 w-6" />;
+    case FileType.PDF:
+      return <FileText className="h-6 w-6" />;
+    default:
+      return <File className="h-6 w-6" />;
+  }
+}
+
+// Helper function to get background color for the file icon
+function getIconBackground(file: UploadedFile) {
+  const fileType = getFileTypeFromName(file.name);
+  
+  switch (fileType) {
+    case FileType.POWERPOINT:
+      return "#FFF4E5"; // Light orange
+    case FileType.WORD:
+      return "#E3F2FD"; // Light blue
+    case FileType.PDF:
+      return "#E8F5E9"; // Light green
+    default:
+      return "#F5F5F5"; // Light gray
+  }
+}
+
+// Helper function to get text color for the file icon
+function getIconColor(file: UploadedFile) {
+  const fileType = getFileTypeFromName(file.name);
+  
+  switch (fileType) {
+    case FileType.POWERPOINT:
+      return "#E65100"; // Dark orange
+    case FileType.WORD:
+      return "#0D47A1"; // Dark blue
+    case FileType.PDF:
+      return "#2E7D32"; // Dark green
+    default:
+      return "#616161"; // Dark gray
+  }
+}
+
+function StatusBadge({ status }: { status: FileStatus }) {
+  switch (status) {
+    case FileStatus.QUEUED:
+      return (
+        <Badge variant="outline" className="bg-gray-100 text-gray-800">
+          Queued
+        </Badge>
+      );
+    case FileStatus.PROCESSING:
+      return (
+        <Badge variant="outline" className="bg-blue-100 text-blue-800 animate-pulse">
+          Converting
+        </Badge>
+      );
+    case FileStatus.COMPLETED:
+      return (
+        <Badge variant="outline" className="bg-green-100 text-green-800">
+          Completed
+        </Badge>
+      );
+    case FileStatus.FAILED:
+      return (
+        <Badge variant="outline" className="bg-red-100 text-red-800">
+          Failed
+        </Badge>
+      );
+    case FileStatus.CANCELLED:
+      return (
+        <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
+          Cancelled
+        </Badge>
+      );
+    default:
+      return null;
+  }
 }
 
 export default function FilesList({
@@ -104,11 +190,15 @@ export default function FilesList({
               <div key={file.id} className="border border-gray-200 rounded-md p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0 w-10 h-10 bg-orange-100 text-orange-600 rounded flex items-center justify-center">
+                    <div className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center"
+                         style={{ 
+                           backgroundColor: getIconBackground(file),
+                           color: getIconColor(file)
+                         }}>
                       {file.status === FileStatus.COMPLETED ? (
                         <FileText className="h-6 w-6" />
                       ) : (
-                        <Presentation className="h-6 w-6" />
+                        getFileIcon(file)
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -169,41 +259,4 @@ export default function FilesList({
       </CardContent>
     </Card>
   );
-}
-
-function StatusBadge({ status }: { status: FileStatus }) {
-  switch (status) {
-    case FileStatus.QUEUED:
-      return (
-        <Badge variant="outline" className="bg-gray-100 text-gray-800">
-          Queued
-        </Badge>
-      );
-    case FileStatus.PROCESSING:
-      return (
-        <Badge variant="outline" className="bg-blue-100 text-blue-800 animate-pulse">
-          Converting
-        </Badge>
-      );
-    case FileStatus.COMPLETED:
-      return (
-        <Badge variant="outline" className="bg-green-100 text-green-800">
-          Completed
-        </Badge>
-      );
-    case FileStatus.FAILED:
-      return (
-        <Badge variant="outline" className="bg-red-100 text-red-800">
-          Failed
-        </Badge>
-      );
-    case FileStatus.CANCELLED:
-      return (
-        <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
-          Cancelled
-        </Badge>
-      );
-    default:
-      return null;
-  }
 }

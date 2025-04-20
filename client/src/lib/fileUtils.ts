@@ -40,3 +40,24 @@ export function formatFileSize(bytes: number): string {
   
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
+
+export enum FileType {
+  POWERPOINT = "powerpoint",
+  WORD = "word",
+  PDF = "pdf",
+  OTHER = "other"
+}
+
+export function getFileTypeFromName(filename: string): FileType {
+  const extension = filename.toLowerCase().split('.').pop() || '';
+  
+  if (['ppt', 'pptx'].includes(extension)) {
+    return FileType.POWERPOINT;
+  } else if (['doc', 'docx'].includes(extension)) {
+    return FileType.WORD;
+  } else if (extension === 'pdf') {
+    return FileType.PDF;
+  } else {
+    return FileType.OTHER;
+  }
+}
