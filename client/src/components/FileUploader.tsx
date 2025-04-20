@@ -43,7 +43,7 @@ export default function FileUploader({ onFilesAdded }: FileUploaderProps) {
       const MAX_SIZE = 100 * 1024 * 1024; // 100MB
       const validFiles = validTypeFiles.filter((file) => file.size <= MAX_SIZE);
       
-      if (validFiles.length < pptFiles.length) {
+      if (validFiles.length < validTypeFiles.length) {
         toast({
           title: "File size exceeded",
           description: "Some files exceed the 100MB limit and were excluded.",
@@ -82,8 +82,12 @@ export default function FileUploader({ onFilesAdded }: FileUploaderProps) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop,
     accept: {
+      // PowerPoint formats
       'application/vnd.ms-powerpoint': ['.ppt'],
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx']
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
+      // Word formats
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
     }
   });
 
@@ -103,13 +107,14 @@ export default function FileUploader({ onFilesAdded }: FileUploaderProps) {
             <h3 className="text-lg font-medium mb-1">
               {isDragActive
                 ? "Drop your files here"
-                : "Drag & drop PPT files here"}
+                : "Drag & drop files here"}
             </h3>
             <p className="text-gray-500 mb-4 text-sm">Or click to browse your files</p>
             <Button>Select Files</Button>
             <input {...getInputProps()} />
             <p className="text-xs text-gray-500 mt-4">
-              Supported formats: .ppt, .pptx (Max 10 files, 100MB each)
+              Supported formats: PowerPoint (.ppt, .pptx) and Word (.doc, .docx) 
+              <br />(Max 10 files, 100MB each)
             </p>
           </div>
         </div>

@@ -239,9 +239,9 @@ export default function Home() {
     <div className="bg-gray-50 font-sans text-gray-800 min-h-screen">
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <header className="mb-8 text-center">
-          <h1 className="text-3xl font-semibold mb-2">PPT to PDF Converter</h1>
+          <h1 className="text-3xl font-semibold mb-2">Document to PDF Converter</h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Convert multiple PowerPoint presentations to PDF files in seconds.
+            Convert multiple PowerPoint presentations and Word documents to PDF files in seconds.
             Preserve all formatting and images with our batch converter.
           </p>
         </header>

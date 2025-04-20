@@ -12,7 +12,7 @@ export default function InfoSection() {
             <ul className="space-y-2 text-gray-700">
               <li className="flex items-start">
                 <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
-                <span>Convert multiple PPT/PPTX files at once</span>
+                <span>Convert multiple PowerPoint and Word files at once</span>
               </li>
               <li className="flex items-start">
                 <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
