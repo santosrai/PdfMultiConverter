@@ -15,20 +15,25 @@ export default function FileUploader({ onFilesAdded }: FileUploaderProps) {
   
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
-      // Filter for only PPT and PPTX files
-      const pptFiles = acceptedFiles.filter(
+      // Filter for PPT/PPTX and DOC/DOCX files
+      const validTypeFiles = acceptedFiles.filter(
         (file) =>
+          // PowerPoint files
           file.type === "application/vnd.ms-powerpoint" ||
-          file.type ===
-            "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
-          file.name.endsWith(".ppt") ||
-          file.name.endsWith(".pptx")
+          file.type === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
+          file.name.toLowerCase().endsWith(".ppt") ||
+          file.name.toLowerCase().endsWith(".pptx") ||
+          // Word files
+          file.type === "application/msword" ||
+          file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+          file.name.toLowerCase().endsWith(".doc") || 
+          file.name.toLowerCase().endsWith(".docx")
       );
 
-      if (pptFiles.length === 0) {
+      if (validTypeFiles.length === 0) {
         toast({
           title: "Invalid files",
-          description: "Please upload only PowerPoint files (.ppt or .pptx)",
+          description: "Please upload only PowerPoint (.ppt/.pptx) or Word (.doc/.docx) files",
           variant: "destructive",
         });
         return;
@@ -36,7 +41,7 @@ export default function FileUploader({ onFilesAdded }: FileUploaderProps) {
 
       // Check file size limit (100MB)
       const MAX_SIZE = 100 * 1024 * 1024; // 100MB
-      const validFiles = pptFiles.filter((file) => file.size <= MAX_SIZE);
+      const validFiles = validTypeFiles.filter((file) => file.size <= MAX_SIZE);
       
       if (validFiles.length < pptFiles.length) {
         toast({

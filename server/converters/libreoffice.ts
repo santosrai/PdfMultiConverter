@@ -6,13 +6,41 @@ import fs from "fs";
 const execAsync = promisify(exec);
 
 /**
- * Converts a PowerPoint file to PDF using LibreOffice
+ * Determines file type based on extension
+ */
+export enum FileType {
+  POWERPOINT = "powerpoint",
+  WORD = "word",
+  UNKNOWN = "unknown"
+}
+
+/**
+ * Get file type based on extension
  * 
- * @param inputFile Path to the PPT/PPTX file
+ * @param filePath Path to the file
+ * @returns FileType enum value
+ */
+export function getFileType(filePath: string): FileType {
+  const ext = path.extname(filePath).toLowerCase();
+  
+  if (['.ppt', '.pptx'].includes(ext)) {
+    return FileType.POWERPOINT;
+  } else if (['.doc', '.docx'].includes(ext)) {
+    return FileType.WORD;
+  }
+  
+  return FileType.UNKNOWN;
+}
+
+/**
+ * Converts a document file to PDF using LibreOffice
+ * Supports PowerPoint (PPT/PPTX) and Word (DOC/DOCX) files
+ * 
+ * @param inputFile Path to the document file
  * @param outputFile Path where the PDF should be saved
  * @returns Promise that resolves when conversion is complete
  */
-export async function convertPptToPdf(inputFile: string, outputFile: string): Promise<void> {
+export async function convertToPdf(inputFile: string, outputFile: string): Promise<void> {
   try {
     // Ensure input file exists
     if (!fs.existsSync(inputFile)) {
@@ -65,9 +93,9 @@ export async function convertPptToPdf(inputFile: string, outputFile: string): Pr
     }
     
     return;
-  } catch (error) {
+  } catch (error: any) {
     // If LibreOffice is not installed, provide a helpful error message
-    if (error.message?.includes("command not found") && error.message?.includes("libreoffice")) {
+    if (typeof error === 'object' && error?.message?.includes("command not found") && error?.message?.includes("libreoffice")) {
       throw new Error("LibreOffice not installed. Please install LibreOffice to use the converter.");
     }
     
@@ -78,4 +106,14 @@ export async function convertPptToPdf(inputFile: string, outputFile: string): Pr
     
     throw error;
   }
+}
+
+/**
+ * Legacy function for backward compatibility 
+ * Redirects to the new convertToPdf function
+ * 
+ * @deprecated Use convertToPdf instead
+ */
+export async function convertPptToPdf(inputFile: string, outputFile: string): Promise<void> {
+  return convertToPdf(inputFile, outputFile);
 }

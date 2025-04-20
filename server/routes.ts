@@ -6,7 +6,7 @@ import fs from "fs";
 import { promisify } from "util";
 import multer from "multer";
 import { z } from "zod";
-import { convertPptToPdf } from "./converters/libreoffice";
+import { convertToPdf, getFileType, FileType } from "./converters/libreoffice";
 import JSZip from "jszip";
 
 // Create temp upload directory
@@ -30,20 +30,24 @@ const storage_config = multer.diskStorage({
   },
 });
 
-// File filter to accept only PPT/PPTX files
+// File filter to accept PPT/PPTX and DOC/DOCX files
 const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedMimeTypes = [
+    // PowerPoint
     "application/vnd.ms-powerpoint",
     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    // Word
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ];
   
-  const allowedExtensions = [".ppt", ".pptx"];
+  const allowedExtensions = [".ppt", ".pptx", ".doc", ".docx"];
   const ext = path.extname(file.originalname).toLowerCase();
   
   if (allowedMimeTypes.includes(file.mimetype) || allowedExtensions.includes(ext)) {
     cb(null, true);
   } else {
-    cb(new Error("Only PowerPoint files (.ppt, .pptx) are allowed"));
+    cb(new Error("Only PowerPoint (.ppt, .pptx) and Word (.doc, .docx) files are allowed"));
   }
 };
 
@@ -112,8 +116,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const outputPath = path.join(outputDir, job.id + "_" + outputFileName);
 
       try {
-        // Convert PPT to PDF
-        await convertPptToPdf(file.path, outputPath);
+        // Convert file to PDF
+        await convertToPdf(file.path, outputPath);
 
         // Update job with success info
         const outputStats = await fs.promises.stat(outputPath);
