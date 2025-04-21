@@ -66,4 +66,4 @@ The application will be available at `http://0.0.0.0:5000`
 
 - Maximum file size: 100MB
 - Supported input formats: PPT, PPTX
-- Output format: PDF
+- Output format: PDF, DOC
