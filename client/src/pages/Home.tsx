@@ -6,6 +6,7 @@ import InfoSection from "@/components/InfoSection";
 import Footer from "@/components/Footer";
 import { FileStatus, UploadedFile, ConvertedFile } from "@/lib/fileUtils";
 import { useToast } from "@/hooks/use-toast";
+import JSZip from "jszip";
 
 export default function Home() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -61,6 +62,97 @@ export default function Home() {
     }
   };
 
+  const convertSingleFile = async (file: UploadedFile): Promise<boolean> => {
+    try {
+      console.log("Starting conversion for file:", file.name);
+      
+      // Update this file to processing state
+      setUploadedFiles((prevFiles) =>
+        prevFiles.map((prevFile) =>
+          prevFile.id === file.id
+            ? { ...prevFile, status: FileStatus.PROCESSING, progress: 0 }
+            : prevFile
+        )
+      );
+      
+      const formData = new FormData();
+      formData.append("file", file.fileData);
+
+      console.log("Sending fetch request to /api/conversion");
+      
+      // Add timeout to the fetch request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
+      const response = await fetch("/api/conversion", {
+        method: "POST",
+        body: formData,
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+
+      console.log("Response status:", response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Conversion API error:", errorText);
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log("Conversion result:", result);
+      
+      // Update the file with completed status
+      setUploadedFiles((prevFiles) =>
+        prevFiles.map((prevFile) =>
+          prevFile.id === file.id
+            ? { 
+                ...prevFile, 
+                status: FileStatus.COMPLETED, 
+                progress: 100,
+                pdfUrl: result.pdfUrl,
+                pdfSize: result.pdfSize
+              }
+            : prevFile
+        )
+      );
+
+      // Add to converted files
+      setConvertedFiles((prevConverted) => [
+        ...prevConverted,
+        {
+          id: result.id,
+          name: result.name,
+          url: result.pdfUrl,
+          size: result.pdfSize,
+          dateConverted: new Date(),
+        },
+      ]);
+      
+      return true;
+    } catch (error) {
+      console.error("Conversion error for file", file.name, ":", error);
+      
+      // Update file with error status
+      setUploadedFiles((prevFiles) =>
+        prevFiles.map((prevFile) =>
+          prevFile.id === file.id
+            ? { ...prevFile, status: FileStatus.FAILED, error: String(error) }
+            : prevFile
+        )
+      );
+      
+      toast({
+        title: "Conversion failed",
+        description: `Failed to convert ${file.name}. Please try again.`,
+        variant: "destructive",
+      });
+      
+      return false;
+    }
+  };
+
   const handleConvertAll = async () => {
     const filesToConvert = uploadedFiles.filter(
       (file) => file.status === FileStatus.QUEUED
@@ -74,91 +166,36 @@ export default function Home() {
       });
       return;
     }
-
-    // Update all queued files to processing
-    setUploadedFiles((prevFiles) =>
-      prevFiles.map((file) =>
-        file.status === FileStatus.QUEUED
-          ? { ...file, status: FileStatus.PROCESSING, progress: 0 }
-          : file
-      )
-    );
-
-    // Start processing each file
+    
+    // Process files sequentially one at a time instead of in parallel
+    let successCount = 0;
+    let failureCount = 0;
+    
     for (const file of filesToConvert) {
-      try {
-        console.log("Starting conversion for file:", file.name);
-        const formData = new FormData();
-        formData.append("file", file.fileData);
-
-        console.log("Sending fetch request to /api/conversion");
-        const response = await fetch("/api/conversion", {
-          method: "POST",
-          body: formData,
-          // Don't include credentials as they might cause issues
-        });
-
-        console.log("Response status:", response.status);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("Conversion API error:", errorText);
-          throw new Error(`Error: ${response.status} ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log("Conversion result:", result);
-        
-        // Update the file with completed status
-        setUploadedFiles((prevFiles) =>
-          prevFiles.map((prevFile) =>
-            prevFile.id === file.id
-              ? { 
-                  ...prevFile, 
-                  status: FileStatus.COMPLETED, 
-                  progress: 100,
-                  pdfUrl: result.pdfUrl,
-                  pdfSize: result.pdfSize
-                }
-              : prevFile
-          )
-        );
-
-        // Add to converted files
-        setConvertedFiles((prevConverted) => [
-          ...prevConverted,
-          {
-            id: result.id,
-            name: result.name,
-            url: result.pdfUrl,
-            size: result.pdfSize,
-            dateConverted: new Date(),
-          },
-        ]);
-      } catch (error) {
-        console.error("Conversion error:", error);
-        
-        // Update file with error status
-        setUploadedFiles((prevFiles) =>
-          prevFiles.map((prevFile) =>
-            prevFile.id === file.id
-              ? { ...prevFile, status: FileStatus.FAILED, error: String(error) }
-              : prevFile
-          )
-        );
-        
-        toast({
-          title: "Conversion failed",
-          description: `Failed to convert ${file.name}. ${String(error)}`,
-          variant: "destructive",
-        });
+      const success = await convertSingleFile(file);
+      if (success) {
+        successCount++;
+      } else {
+        failureCount++;
       }
+      
+      // Add a small delay between files to prevent overloading the server
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
     
-    toast({
-      title: "Conversion completed",
-      description: "All files have been processed.",
-    });
+    // Show summary toast
+    if (failureCount === 0) {
+      toast({
+        title: "Conversion completed",
+        description: `Successfully converted ${successCount} files.`,
+      });
+    } else {
+      toast({
+        title: "Conversion partially completed",
+        description: `Converted ${successCount} files. Failed to convert ${failureCount} files.`,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleClearAll = () => {
@@ -179,45 +216,51 @@ export default function Home() {
       });
       return;
     }
-
+    
     try {
-      console.log("Starting ZIP download for files:", convertedFiles.map(f => f.id));
-      const response = await fetch("/api/download/zip", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fileIds: convertedFiles.map(f => f.id)
-        }),
-        // Remove credentials
+      toast({
+        title: "Preparing download",
+        description: "Creating ZIP archive with all converted files...",
       });
       
-      console.log("ZIP download response status:", response.status);
-
-      if (!response.ok) {
-        throw new Error("Failed to create ZIP file");
-      }
-
-      // Create a download link and click it
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "converted_pdfs.zip";
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      const zip = new JSZip();
+      
+      // Fetch all converted PDFs and add them to the zip
+      const fetchPromises = convertedFiles.map(async (file) => {
+        const response = await fetch(file.url);
+        if (!response.ok) throw new Error(`Failed to fetch ${file.name}`);
+        
+        const blob = await response.blob();
+        zip.file(file.name, blob);
+        
+        return file.name;
+      });
+      
+      await Promise.all(fetchPromises);
+      
+      // Generate the zip file
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      
+      // Create a download link
+      const url = URL.createObjectURL(zipBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "converted_documents.zip";
+      link.click();
+      
+      // Clean up
+      URL.revokeObjectURL(url);
       
       toast({
         title: "Download started",
-        description: "Your ZIP file is being downloaded.",
+        description: `${convertedFiles.length} files have been packaged into a ZIP file.`,
       });
     } catch (error) {
+      console.error("Error creating ZIP:", error);
+      
       toast({
         title: "Download failed",
-        description: String(error),
+        description: "Failed to create ZIP file. Please try downloading files individually.",
         variant: "destructive",
       });
     }
