@@ -1,7 +1,7 @@
 
-# PowerPoint to PDF Converter
+# Pportable - Document Converter
 
-A web application that allows users to convert multiple PowerPoint files (PPT/PPTX) to PDFs in batch mode with a modern, user-friendly interface.
+A portable web application that allows users to convert multiple document files (PPT/PPTX/DOC/DOCX) to PDFs in batch mode with a modern, user-friendly interface.
 
 ## Features
 
