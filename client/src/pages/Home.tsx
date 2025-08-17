@@ -1,4 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import Navigation from "@/components/Navigation";
+import HeroSection from "@/components/HeroSection";
+import TrustSignals from "@/components/TrustSignals";
+import AdvancedFeatures from "@/components/AdvancedFeatures";
+import FAQ from "@/components/FAQ";
 import FileUploader from "@/components/FileUploader";
 import FilesList from "@/components/FilesList";
 import DownloadSection from "@/components/DownloadSection";
@@ -12,6 +17,14 @@ export default function Home() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [convertedFiles, setConvertedFiles] = useState<ConvertedFile[]>([]);
   const { toast } = useToast();
+  const converterRef = useRef<HTMLDivElement>(null);
+
+  const scrollToConverter = () => {
+    converterRef.current?.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start'
+    });
+  };
 
   const handleFilesAdded = (files: UploadedFile[]) => {
     setUploadedFiles((prevFiles) => [...prevFiles, ...files]);
@@ -279,36 +292,55 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-gray-50 font-sans text-gray-800 min-h-screen">
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
-        <header className="mb-8 text-center">
-          <h1 className="text-3xl font-semibold mb-2">Document to PDF Converter</h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Convert multiple PowerPoint presentations and Word documents to PDF files in seconds.
-            Preserve all formatting and images with our batch converter.
-          </p>
-        </header>
+    <div className="min-h-screen bg-white">
+      <Navigation />
+      
+      {/* Hero Section */}
+      <HeroSection onGetStarted={scrollToConverter} />
+      
+      {/* Trust Signals */}
+      <TrustSignals />
+      
+      {/* Advanced Features */}
+      <AdvancedFeatures />
+      
+      {/* Converter Section */}
+      <section ref={converterRef} className="py-16 bg-white" id="converter">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Start Converting Your Files
+            </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Upload your PowerPoint or Word documents and convert them to PDF format in seconds. 
+              Support for batch processing with real-time progress tracking.
+            </p>
+          </div>
 
-        <FileUploader onFilesAdded={handleFilesAdded} />
+          <FileUploader onFilesAdded={handleFilesAdded} />
 
-        <FilesList
-          files={uploadedFiles}
-          onRemove={handleRemoveFile}
-          onCancel={handleCancelConversion}
-          onConvertAll={handleConvertAll}
-          onClearAll={handleClearAll}
-          simulateProgress={simulateProgressUpdate}
-        />
+          <FilesList
+            files={uploadedFiles}
+            onRemove={handleRemoveFile}
+            onCancel={handleCancelConversion}
+            onConvertAll={handleConvertAll}
+            onClearAll={handleClearAll}
+            simulateProgress={simulateProgressUpdate}
+          />
 
-        <DownloadSection
-          files={convertedFiles}
-          onDownloadAll={handleDownloadAll}
-        />
+          <DownloadSection
+            files={convertedFiles}
+            onDownloadAll={handleDownloadAll}
+          />
 
-        <InfoSection />
+          <InfoSection />
+        </div>
+      </section>
 
-        <Footer />
-      </div>
+      {/* FAQ Section */}
+      <FAQ />
+
+      <Footer />
     </div>
   );
 }
