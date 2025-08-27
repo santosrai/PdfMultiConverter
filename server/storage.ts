@@ -1,9 +1,9 @@
-import { 
-  ConversionJob, 
-  InsertConversionJob, 
-  User, 
-  InsertUser, 
-  conversionJobs
+import {
+  ConversionJob,
+  InsertConversionJob,
+  User,
+  InsertUser,
+  conversionJobs,
 } from "@shared/schema";
 
 // modify the interface with any CRUD methods
@@ -12,14 +12,17 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+
   // Conversion job methods
   getConversionJob(id: number): Promise<ConversionJob | undefined>;
   getAllConversionJobs(): Promise<ConversionJob[]>;
   createConversionJob(job: InsertConversionJob): Promise<ConversionJob>;
-  updateConversionJob(id: number, updates: Partial<ConversionJob>): Promise<ConversionJob>;
+  updateConversionJob(
+    id: number,
+    updates: Partial<ConversionJob>,
+  ): Promise<ConversionJob>;
   deleteConversionJob(id: number): Promise<boolean>;
-  
+
   // Stats methods
   getStats(): Promise<{ filesConverted: number; happyUsers: number }>;
   incrementFilesConverted(): Promise<void>;
@@ -38,7 +41,7 @@ export class MemStorage implements IStorage {
     this.conversions = new Map();
     this.userId = 1;
     this.conversionId = 1;
-    this.stats = { filesConverted: 2500000, happyUsers: 150000 }; // Starting values
+    this.stats = { filesConverted: 100, happyUsers: 50 }; // Starting values
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -57,19 +60,19 @@ export class MemStorage implements IStorage {
     this.users.set(id, user);
     return user;
   }
-  
+
   async getConversionJob(id: number): Promise<ConversionJob | undefined> {
     return this.conversions.get(id);
   }
-  
+
   async getAllConversionJobs(): Promise<ConversionJob[]> {
     return Array.from(this.conversions.values());
   }
-  
+
   async createConversionJob(job: InsertConversionJob): Promise<ConversionJob> {
     const id = this.conversionId++;
     const now = new Date();
-    
+
     const conversionJob: ConversionJob = {
       ...job,
       id,
@@ -78,40 +81,43 @@ export class MemStorage implements IStorage {
       createdAt: now,
       updatedAt: now,
     };
-    
+
     this.conversions.set(id, conversionJob);
     return conversionJob;
   }
-  
-  async updateConversionJob(id: number, updates: Partial<ConversionJob>): Promise<ConversionJob> {
+
+  async updateConversionJob(
+    id: number,
+    updates: Partial<ConversionJob>,
+  ): Promise<ConversionJob> {
     const job = this.conversions.get(id);
-    
+
     if (!job) {
       throw new Error(`Conversion job with id ${id} not found`);
     }
-    
+
     const updatedJob: ConversionJob = {
       ...job,
       ...updates,
       updatedAt: new Date(),
     };
-    
+
     this.conversions.set(id, updatedJob);
     return updatedJob;
   }
-  
+
   async deleteConversionJob(id: number): Promise<boolean> {
     return this.conversions.delete(id);
   }
-  
+
   async getStats(): Promise<{ filesConverted: number; happyUsers: number }> {
     return { ...this.stats };
   }
-  
+
   async incrementFilesConverted(): Promise<void> {
     this.stats.filesConverted++;
   }
-  
+
   async incrementHappyUsers(): Promise<void> {
     this.stats.happyUsers++;
   }
