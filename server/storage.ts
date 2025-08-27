@@ -19,6 +19,11 @@ export interface IStorage {
   createConversionJob(job: InsertConversionJob): Promise<ConversionJob>;
   updateConversionJob(id: number, updates: Partial<ConversionJob>): Promise<ConversionJob>;
   deleteConversionJob(id: number): Promise<boolean>;
+  
+  // Stats methods
+  getStats(): Promise<{ filesConverted: number; happyUsers: number }>;
+  incrementFilesConverted(): Promise<void>;
+  incrementHappyUsers(): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -26,12 +31,14 @@ export class MemStorage implements IStorage {
   private conversions: Map<number, ConversionJob>;
   private userId: number;
   private conversionId: number;
+  private stats: { filesConverted: number; happyUsers: number };
 
   constructor() {
     this.users = new Map();
     this.conversions = new Map();
     this.userId = 1;
     this.conversionId = 1;
+    this.stats = { filesConverted: 2500000, happyUsers: 150000 }; // Starting values
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -95,6 +102,18 @@ export class MemStorage implements IStorage {
   
   async deleteConversionJob(id: number): Promise<boolean> {
     return this.conversions.delete(id);
+  }
+  
+  async getStats(): Promise<{ filesConverted: number; happyUsers: number }> {
+    return { ...this.stats };
+  }
+  
+  async incrementFilesConverted(): Promise<void> {
+    this.stats.filesConverted++;
+  }
+  
+  async incrementHappyUsers(): Promise<void> {
+    this.stats.happyUsers++;
   }
 }
 

@@ -197,6 +197,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API route to get stats
+  app.get("/api/stats", async (req, res) => {
+    try {
+      const stats = await storage.getStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Stats error:", error);
+      res.status(500).json({ message: "Error fetching stats", error: String(error) });
+    }
+  });
+
+  // API route to increment stats
+  app.post("/api/stats/increment", async (req, res) => {
+    try {
+      const { type } = req.body;
+      
+      if (type === "filesConverted") {
+        await storage.incrementFilesConverted();
+      } else if (type === "happyUsers") {
+        await storage.incrementHappyUsers();
+      }
+      
+      const stats = await storage.getStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Stats increment error:", error);
+      res.status(500).json({ message: "Error updating stats", error: String(error) });
+    }
+  });
+
   // API route to download multiple files as ZIP
   app.post("/api/download/zip", async (req, res) => {
     try {
