@@ -16,17 +16,23 @@ import JSZip from "jszip";
 // Helper function to update stats via API
 async function updateStats(statName: string) {
   try {
-    await fetch("/api/stats", {
+    const response = await fetch("/api/stats/increment", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ stat: statName }),
+      body: JSON.stringify({ type: statName }),
     });
+    
+    if (response.ok) {
+      const updatedStats = await response.json();
+      return updatedStats;
+    }
   } catch (error) {
     console.error(`Error updating ${statName} stats:`, error);
     // In a real application, you might want to show a toast or handle this error more gracefully
   }
+  return null;
 }
 
 // Helper function to fetch initial stats
@@ -184,12 +190,20 @@ export default function Home() {
         },
       ]);
 
-      // Update stats counters via API
-      await updateStats("filesConverted");
+      // Update stats counters via API and refresh frontend values
+      const updatedStats = await updateStats("filesConverted");
+      if (updatedStats) {
+        setFilesConverted(updatedStats.filesConverted);
+        setHappyUsers(updatedStats.happyUsers);
+      }
 
       // Increment happy users occasionally (simulate satisfied customers)
       if (Math.random() < 0.3) { // 30% chance to increment happy users
-        await updateStats("happyUsers");
+        const happyUserStats = await updateStats("happyUsers");
+        if (happyUserStats) {
+          setFilesConverted(happyUserStats.filesConverted);
+          setHappyUsers(happyUserStats.happyUsers);
+        }
       }
 
       return true;
