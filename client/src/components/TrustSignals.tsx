@@ -2,7 +2,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Lock, Clock, Award, CheckCircle, Star } from "lucide-react";
 
-export default function TrustSignals() {
+interface TrustSignalsProps {
+  filesConverted: number;
+  happyUsers: number;
+}
+
+export default function TrustSignals({ filesConverted, happyUsers }: TrustSignalsProps) {
   const securityFeatures = [
     {
       icon: Shield,
@@ -53,9 +58,19 @@ export default function TrustSignals() {
     },
   ];
 
+  const formatCount = (count: number) => {
+    if (count >= 1000000) {
+      return (count / 1000000).toFixed(1) + "M+";
+    } else if (count >= 1000) {
+      return (count / 1000).toFixed(0) + "K+";
+    } else {
+      return count.toString();
+    }
+  };
+
   const stats = [
-    { number: "2.5M+", label: "Files Converted" },
-    { number: "150K+", label: "Happy Users" },
+    { number: formatCount(filesConverted), label: "Files Converted" },
+    { number: formatCount(happyUsers), label: "Happy Users" },
     { number: "99.9%", label: "Success Rate" },
     { number: "24/7", label: "Available" },
   ];

@@ -345,7 +345,11 @@ export default function Home() {
       <Navigation />
 
       {/* Hero Section */}
-      <HeroSection onGetStarted={scrollToConverter} />
+      <HeroSection 
+        onGetStarted={scrollToConverter} 
+        filesConverted={filesConverted}
+        happyUsers={happyUsers}
+      />
 
       {/* Trust Signals */}
       <TrustSignals filesConverted={filesConverted} happyUsers={happyUsers} />

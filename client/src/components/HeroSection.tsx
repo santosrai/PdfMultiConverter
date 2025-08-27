@@ -13,12 +13,24 @@ import {
 
 interface HeroSectionProps {
   onGetStarted: () => void;
+  filesConverted: number;
+  happyUsers: number;
 }
 
-export default function HeroSection({ onGetStarted }: HeroSectionProps) {
+export default function HeroSection({ onGetStarted, filesConverted, happyUsers }: HeroSectionProps) {
+  const formatCount = (count: number) => {
+    if (count >= 1000000) {
+      return (count / 1000000).toFixed(1) + "M+";
+    } else if (count >= 1000) {
+      return (count / 1000).toFixed(0) + "K+";
+    } else {
+      return count.toString();
+    }
+  };
+
   const stats = [
-    { label: "Files Converted", value: "2.5M+", icon: FileText },
-    { label: "Happy Users", value: "150K+", icon: Users },
+    { label: "Files Converted", value: formatCount(filesConverted), icon: FileText },
+    { label: "Happy Users", value: formatCount(happyUsers), icon: Users },
     { label: "Success Rate", value: "99.9%", icon: CheckCircle },
   ];
 
